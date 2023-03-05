@@ -12,4 +12,4 @@ creates a chart like:
 
 ![This was the first chart I made lol](https://i.imgur.com/KhfGfqN.png)
 
-Disclaimer: Not affiliated or endorsed by The Storygraph in anyway.
+Disclaimer: I am not affiliated with or endorsed by The Storygraph in any way.
