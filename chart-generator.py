@@ -1,52 +1,47 @@
 import pandas as pd
 import numpy as np
 
-import matplotlib
 import matplotlib.pyplot as plt
 
 import datetime as dt
-import sys
 
-PATH = sys.argv[1]
+PATH = r"C:\Users\sebas\Downloads\f6f2324351b7e56ff64a5504d251c7a93d10c531d820363e713d5f3502b5442f.csv"
 
-df = pd.read_csv(PATH, usecols=("Title", "Authors", "Dates Read"))
+# DATA RETRIEVAL AND SANITIZATION
+df = pd.read_csv(PATH, usecols=("Title", "Authors", "Read Status", "Dates Read"))
+df = df.loc[df['Read Status'] == "read"]
+df.drop(["Read Status"], inplace=True, axis=1)
 
-# Clean up data to have only ranged dates
-df = df[df["Dates Read"].map(lambda x : x is not np.nan)]
-df = df[df["Dates Read"].map(lambda x : len(x.split('-')) == 2)]
+df.columns = ["title", "authors", "range"] # shorten colnames for my sanity
 
-# Separate dates into their own columns
-df["start_date"] = df["Dates Read"].map(lambda x : x.split('-')[0])
-df["end_date"] = df["Dates Read"].map(lambda x : x.split('-')[1])
+df['range'] = df['range'].map(lambda x : x.split(","))
+data = []
+parse_date = lambda date : dt.datetime.strptime(date, "%Y/%m/%d").date()
+for i, row in df.iterrows():
+    for range in row['range']: # Create a separate row for each reading session
+        date_list = [date.strip() for date in range.split('-')]
+        if len(date_list) == 2: # Then its in date-date format (only valid case)
+            data.append({
+                "title" : row['title'],
+                "authors" : row['authors'],
+                "start" : parse_date(date_list[0]),
+                "end" : parse_date(date_list[1])
+            })
+data.sort(key=lambda x : x['start'])
 
-df["start_date"] = pd.to_datetime(df["start_date"])
-df["end_date"] = pd.to_datetime(df["end_date"])
+df = pd.DataFrame(data)
 
-df.sort_values(by="start_date", ascending=False, inplace=True)
+# # CALCULATIONS AND PLOTTING
+df["elapsed"] = df["end"] - df["start"] + dt.timedelta(days=1)
 
-# Get a new title column
-df["Title"] = df["Title"] + " (" + df["Authors"] + ")"
-df.drop(["Authors", "Dates Read"], inplace=True, axis=1)
-
-# Auxiliary Columns
-first_month = df["start_date"].min().replace(day=1)
-
-df["days_to_start"] = (df["start_date"] - df["start_date"].min()).dt.days
-df["days_to_end"] = (df["end_date"] - df["start_date"].min()).dt.days
-df["elapsed"] = df["days_to_end"] - df["days_to_start"] + 1
-
-# Chart
 fig, ax = plt.subplots()
-
-plt.barh(y=df["Title"], width=df["elapsed"], left=df["days_to_start"])
 plt.title("Book Timeline")
+
 ax.xaxis.grid(True, alpha=0.5)
+dates = pd.date_range(df["start"].min(), df["end"].max(), freq="SMS")
+ax.set_xticks(dates)
+ax.set_xticklabels(dates.strftime("%d %b %y"), rotation=45)
 
-# Add labels to the chart
-xticks = np.arange(0, df["days_to_end"].max(), 14)
-xlabels = pd.date_range(df["start_date"].min(), df["end_date"].max()).strftime("%d %b %y")[::14]
+ax.barh(y=df["title"], width=df["elapsed"], left=df["start"])
 
-ax.set_xticks(xticks)
-ax.set_xticklabels(xlabels, rotation=60, ha="right")
-
-plt.show()
+plt.savefig("img.png", bbox_inches="tight")
