@@ -71,3 +71,18 @@ for i, row in df.iterrows():
                 "end" : parse_date(date_list[1])
             })
 data.sort(key=lambda x : x['start'])
+
+df = pd.DataFrame(data)
+
+print(df)
+print(df.dtypes)
+
+# # CALCULATIONS FOR PLOTTING
+
+df["elapsed"] = df["end"] - df["start"] + dt.timedelta(days=1)
+
+fig, ax = plt.subplots()
+
+plt.barh(y=df["title"], width=df["elapsed"], left=df["start"])
+
+plt.show()
