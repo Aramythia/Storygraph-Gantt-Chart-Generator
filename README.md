@@ -5,7 +5,7 @@ From your Storygraph, click on your profile at the top right, then **'Manage Acc
 
 ## Quick Usage
 ```sh
-python chart-generator.py storygraph_export.csv
+python ChartGenerator -i storygraph_export.csv -o mychart.png
 ```
 
 creates a chart like:
