@@ -8,15 +8,9 @@ import matplotlib.pyplot as plt
 
 import datetime as dt
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--input_file", type=Path, required=True)
-    parser.add_argument("-o", "--output_file", type=Path, required=True)
-
-    args = parser.parse_args()
-
+def main(input_file : Path, output_file : Path):
     # DATA RETRIEVAL AND SANITIZATION
-    df = pd.read_csv(args.input_file, 
+    df = pd.read_csv(input_file, 
         usecols=("Title", "Authors", "Read Status", "Dates Read"))
     df = df.loc[df['Read Status'] == "read"]
     df.drop(["Read Status"], inplace=True, axis=1)
@@ -53,7 +47,13 @@ def main():
 
     ax.barh(y=df["title"], width=df["elapsed"], left=df["start"])
 
-    plt.savefig(args.output_file, bbox_inches="tight")
+    plt.savefig(output_file, bbox_inches="tight")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--input_file", type=Path, required=True)
+    parser.add_argument("-o", "--output_file", type=Path, required=True)
+
+    args = parser.parse_args()
+
+    main(**args.__dict__)
