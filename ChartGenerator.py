@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from PIL import Image
 
+from io import BytesIO
 import datetime as dt
 
 class ChartGenerator():
@@ -55,11 +56,10 @@ class ChartGenerator():
         self.figure = { "fig" : fig, "ax" : ax }
 
     def get_image(self):
-        fig = self.figure['fig']
-        return Image.frombytes(
-            "RGB", 
-            fig.canvas.get_width_height(),
-            fig.canvas.tostring_rgb())
+        buf = BytesIO()
+        self.figure['fig'].savefig(buf, bbox_inches="tight")
+        buf.seek(0)
+        return Image.open(buf)
     
     def save_image(self, output_file):
         self.figure['fig'].savefig(output_file, bbox_inches="tight")
